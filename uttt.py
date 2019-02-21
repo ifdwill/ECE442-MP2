@@ -265,59 +265,116 @@ class ultimateTicTacToe:
         """
         #YOUR CODE HERE
         # assert(False)
+        isX = (isMax and depth%2 == 0) or (not isMax and depth%2 == 1)
+        #print(isX)
         if depth == 3 or self.checkWinner() != 0:
-            return self.evaluatePredifined(isMax)
+            score = self.evaluatePredifined(isMax if depth%2 == 0 else not isMax)
+            #print("depth 3 score", score)
+            #self.printGameBoard()
+            #if (isMax if depth%2 == 0 else not isMax) is False:
+              #  return -1 * score
+            return score 
 
         self.expandedNodes += 1
         curr_board = self.globalIdx[currBoardIdx]
 
         local_board = [(i, j) for i, j in itertools.product(range(3), range(3))]
+        
+        #value = -1E10 if depth%2 == 0 else 1E10
+        value = None
+        if isX:
+            # value = 0
+            for loc, idx in zip(local_board, range(len(local_board))):
+                if self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] != '_':
+                    # Illegal moves are not worth anything
+                    continue
 
-        value = -1E10 if isMax else 1E10
-        # value = 0
-        for loc, idx in zip(local_board, range(len(local_board))):
-            if self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] != '_':
-                # Illegal moves are not worth anything
-                continue
+                # General case: Add character, call sub function, tear down
+                self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] = \
+                    self.maxPlayer if isMax else self.minPlayer
+                if value == None :
+                    value = self.alphabeta(depth+1, idx, alpha, beta, not isMax)
+                else:
+                    if isMax:
+                        value = max(value, self.alphabeta(depth + 1, idx, alpha, beta, not isMax))
+                    else:
+                        value = min(value, self.alphabeta(depth + 1, idx, alpha, beta, not isMax))
 
-            # General case: Add character, call sub function, tear down
-            self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] = \
-                self.maxPlayer if depth % 2 == 0 else self.minPlayer
+                self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] = '_'
 
-            if isMax:
-                value = max(value, self.alphabeta(depth + 1, idx, alpha, beta, not isMax))
-            else:
-                value = min(value, self.alphabeta(depth + 1, idx, alpha, beta, not isMax))
-
-            self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] = '_'
-
-            if isMax:
+                if depth%2 == 0:
                 # Alpha represents the minimum assured score for the maximizing player
                 # if depth == 0:
                     # print('alpha:', alpha)
                     # print('value:', value)
-                if depth == 0 and (value > alpha or self.bestMoveFound is None):
+                    if depth == 0 and (value > alpha or self.bestMoveFound is None):
                     # print('HI!')
-                    self.bestMoveFound = (curr_board[0] + loc[0], curr_board[1] + loc[1])
-                    self.currBoardIdx = idx
-                alpha = max(alpha, value)
+                        self.bestMoveFound = (curr_board[0] + loc[0], curr_board[1] + loc[1])
+                        self.currBoardIdx = idx
+                    alpha = max(alpha, value)
 
-            else:
+                else:
                 # Beta represents the maximum assured score for the minimizing player
-                if depth == 0 and (value < beta or self.bestMoveFound is None):
+                    if depth == 0 and (value < beta or self.bestMoveFound is None):
                     # print('HI!')
-                    self.bestMoveFound = (curr_board[0] + loc[0], curr_board[1] + loc[1])
-                    self.currBoardIdx = idx
-                beta = min(beta, value)
+                        self.bestMoveFound = (curr_board[0] + loc[0], curr_board[1] + loc[1])
+                        self.currBoardIdx = idx
+                    beta = min(beta, value)
 
-            if alpha >= beta:
-                break
+                if alpha >= beta:
+                    break
+        else :
+            # value = 0
+            for loc, idx in zip(local_board, range(len(local_board))):
+                if self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] != '_':
+                    # Illegal moves are not worth anything
+                    continue
+
+                # General case: Add character, call sub function, tear down
+                self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] = \
+                    self.maxPlayer if isMax else self.minPlayer
+                if value == None :
+                    value = self.alphabeta(depth+1, idx, alpha, beta, not isMax)
+                else:
+                    if isMax:
+                        #print("if isMax value: ", value)
+                        value = max(value, self.alphabeta(depth + 1, idx, alpha, beta, not isMax))
+                    else:
+                        #print("if isMax value: ", value)
+                        value = min(value, self.alphabeta(depth + 1, idx, alpha, beta, not isMax))
+
+                self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] = '_'
+
+                if depth%2 == 0:
+                # Alpha represents the minimum assured score for the maximizing player
+                # if depth == 0:
+                    # print('alpha:', alpha)
+                    # print('value:', value)
+                    if depth == 0 and (value < -alpha or self.bestMoveFound is None):
+                    # print('HI!')
+                        self.bestMoveFound = (curr_board[0] + loc[0], curr_board[1] + loc[1])
+                        self.currBoardIdx = idx
+                    alpha = -min(-alpha, value)
+
+                else:
+                # Beta represents the maximum assured score for the minimizing player
+                    if depth == 0 and (value > -beta or self.bestMoveFound is None):
+                    # print('HI!')
+                        self.bestMoveFound = (curr_board[0] + loc[0], curr_board[1] + loc[1])
+                        self.currBoardIdx = idx
+                    beta = -max(-beta, value)
+
+                if alpha >= beta:
+                    break
         # if depth == 0:
         #     self.currBoardIdx = idx
+        #if depth == 2 or depth == 1:
+            #print("depth %d score %d"%(depth, value))
         return value
 
     def minimax(self, depth, currBoardIdx, isMax):
         """
+		#60, -60, 90, -90, 500, -100, 500, -120, 10000
         This function implements minimax algorithm for ultimate tic-tac-toe game.
         input args:
         depth(int): current depth level

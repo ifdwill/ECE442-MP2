@@ -49,6 +49,8 @@ class ultimateTicTacToe:
         self.bestMoveFound = None
         self.currBoardIdx = self.globalIdx[self.startBoardIdx]
 
+	#def assignScoreDesigned(self, l, isMax, checkWinner): 
+
     def assign_score(self, l, isMax, checkWinner, maxPlayer = 'X', minPlayer = 'O'):
         score = 0
         """
@@ -75,10 +77,10 @@ class ultimateTicTacToe:
                     score += 100
         """
         
-        if checkWinner == 1 :
+        """if checkWinner == 1 :
             return 10000
         elif checkWinner == -1 :
-            return -10000
+            return -10000"""
             
         if isMax :
             if l.count(maxPlayer) == 2 : # 2 X's in the row/col/diag
@@ -88,11 +90,10 @@ class ultimateTicTacToe:
                 if l.count(maxPlayer) == 1:
                     score +=100
         else : #minplayer
-            if l.count(maxPlayer) == 2:
-                if l.count(minPlayer) == 0:
-                    score -= 100
-                if l.count(minPlayer) == 1 :
-                    score -=500
+            if l.count(minPlayer) == 2 and l.count(maxPlayer) == 0:
+                score -= 100
+            if l.count(maxPlayer) == 2 and l.count(minPlayer) == 1:
+                score -=500
         return score
 
     def printGameBoard(self):
@@ -115,12 +116,12 @@ class ultimateTicTacToe:
         #YOUR CODE HERE
 
         winner = self.checkWinner()
-        """
+        #"""
         if winner == 1  and isMax:
             return 10000
         if winner == -1 and not isMax:
             return -10000
-        """
+        #"""
         score = 0
         for local_board_x, local_board_y in self.globalIdx:
             # Iterate through local boards
@@ -134,7 +135,7 @@ class ultimateTicTacToe:
             for i in range(3):
                 # check for a row with the same vals
                 col = [self.board[local_board_x + j][local_board_y + i] for j in range(3)]
-                score += self.assign_score(col, winner,  isMax)
+                score += self.assign_score(col, winner, isMax)
 
             diag = [self.board[local_board_x + i][local_board_y + i] for i in range(3)]
             score += self.assign_score(diag, winner, isMax)
@@ -142,10 +143,10 @@ class ultimateTicTacToe:
             diag = [self.board[local_board_x + i][local_board_y + 2 - i] for i in range(3)]
             score += self.assign_score(diag, winner, isMax)
 
-        if score >= 10000 :
-            return 10000
-        elif score <= -10000 :
-            return -10000
+        #if score > 10000 :
+         #   return 10000
+        #elif score <= -10000 :
+         #   return -10000
 
         if score != 0:
             #print('Rule 2 Score:', score)
@@ -333,13 +334,13 @@ class ultimateTicTacToe:
         if depth == 3 or self.checkWinner() != 0:
             # assume depth starts at 0
             # Note: This is not a meaningful state, but rather a simple way to do some function evals
-            return self.evaluatePredifined(isMax)
+            return self.evaluatePredifined(not isMax)
 
         self.expandedNodes += 1
         curr_board = self.globalIdx[currBoardIdx]
         local_board = [(i, j) for i, j in itertools.product(range(3), range(3))]
         move_vals = []
-
+		
         for loc, idx in zip(local_board, range(len(local_board))):
             # For every local square
             if self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] != '_':
@@ -352,16 +353,18 @@ class ultimateTicTacToe:
             # print(idx)
             value = self.minimax(depth + 1, idx, not isMax)
             self.board[curr_board[0] + loc[0]][curr_board[1] + loc[1]] = '_'
-            if isMax:
-                move_vals.append(value)
-            else:
-                move_vals.append(value)
+            move_vals.append(value)
+
         #print(move_vals)
         bestValue = 0.0
+        #print(depth)
         if isMax:
-            bestValue = max(x for x in move_vals if x is not None)
+			if depth == 0 :
+			    print("isMax Move Vals: " , move_vals)
+			bestValue = max(x for x in move_vals if x is not None)
         else:
-            bestValue = min(x for x in move_vals if x is not None)
+			#print("not isMax Move Vals: " , move_vals)
+			bestValue = min(x for x in move_vals if x is not None)
 
         if depth == 0:
             for idx in range(len(move_vals)):
@@ -476,6 +479,7 @@ if __name__=="__main__":
     gameNum =  input('Game number? ') #str input
     #print(type(gameNum))
 
+    #offensive first, all combinations
     #if gameNum == '1' :
     if gameNum == 1:
         gameBoards, bestMove, expandedNodes, bestValue, winner=uttt.playGamePredifinedAgent(True,True,True) #offensive(minimax) vs defensive(minimax)
@@ -492,6 +496,23 @@ if __name__=="__main__":
     elif gameNum == 4:
         gameBoards, bestMove, expandedNodes, bestValue, winner=uttt.playGamePredifinedAgent(True,False,False) #offensive(alpha-beta) vs defensive(alpha-beta)
         print("Game Number 4: offensive(alpha-beta) vs defensive(alpha-beta)")
+    #defensive first, all combinations
+
+    if gameNum == 5:
+        gameBoards, bestMove, expandedNodes, bestValue, winner=uttt.playGamePredifinedAgent(False,True,True) #offensive(minimax) vs defensive(minimax)
+        print("Game Number 5: defensive(minimax) vs offensive(minimax)")
+    #elif gameNum == '2':
+    elif gameNum == 6:
+        gameBoards, bestMove, expandedNodes, bestValue, winner=uttt.playGamePredifinedAgent(False,True,False) #offensive(minimax) vs defensive(alpha-beta)
+        print("Game Number 6: defensive(minimax) vs offensive(alpha-beta)")
+    #elif gameNum == '3':
+    elif gameNum == 7:
+        gameBoards, bestMove, expandedNodes, bestValue, winner=uttt.playGamePredifinedAgent(False,False,True) #offensive(alpha-beta) vs defensive(minimax)
+        print("Game Number 7: defensive(alpha-beta) vs offensive(minimax)")
+    #elif gameNum == '4' :
+    elif gameNum == 8:
+        gameBoards, bestMove, expandedNodes, bestValue, winner=uttt.playGamePredifinedAgent(False,False,False) #offensive(alpha-beta) vs defensive(alpha-beta)
+        print("Game Number 8: defensive(alpha-beta) vs offensive(alpha-beta)")
     
     if winner == 1:
         print("The winner is maxPlayer!!!")
@@ -499,4 +520,3 @@ if __name__=="__main__":
         print("The winner is minPlayer!!!")
     else:
         print("Tie. No winner:(")
-

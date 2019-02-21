@@ -51,7 +51,7 @@ class ultimateTicTacToe:
 
 	#def assignScoreDesigned(self, l, isMax, checkWinner): 
 
-    def assign_score(self, l, isMax, checkWinner, maxPlayer = 'X', minPlayer = 'O'):
+    def assign_score(self, l, isMax, maxPlayer = 'X', minPlayer = 'O'):
         score = 0
         """
         if l.count(maxPlayer) == 2: #two X in a row
@@ -114,7 +114,7 @@ class ultimateTicTacToe:
         score(float): estimated utility score for maxPlayer or minPlayer
         """
         #YOUR CODE HERE
-
+        #print(isMax)
         winner = self.checkWinner()
         #"""
         if winner == 1  and isMax:
@@ -129,19 +129,19 @@ class ultimateTicTacToe:
             for i in range(3):
                 # check for a row with the same vals
                 row = self.board[local_board_x + i][local_board_y: local_board_y + 3]
-                score += self.assign_score(row, winner, isMax)
+                score += self.assign_score(row,isMax)
 
             # Check cols
             for i in range(3):
                 # check for a row with the same vals
                 col = [self.board[local_board_x + j][local_board_y + i] for j in range(3)]
-                score += self.assign_score(col, winner, isMax)
+                score += self.assign_score(col, isMax)
 
             diag = [self.board[local_board_x + i][local_board_y + i] for i in range(3)]
-            score += self.assign_score(diag, winner, isMax)
-
+            score += self.assign_score(diag, isMax)
+            
             diag = [self.board[local_board_x + i][local_board_y + 2 - i] for i in range(3)]
-            score += self.assign_score(diag, winner, isMax)
+            score += self.assign_score(diag, isMax)
 
         #if score > 10000 :
          #   return 10000
@@ -150,7 +150,6 @@ class ultimateTicTacToe:
 
         if score != 0:
             #print('Rule 2 Score:', score)
-            # Rule 2 applied
             return score
 
         # Rule 3:
@@ -334,7 +333,8 @@ class ultimateTicTacToe:
         if depth == 3 or self.checkWinner() != 0:
             # assume depth starts at 0
             # Note: This is not a meaningful state, but rather a simple way to do some function evals
-            return self.evaluatePredifined(not isMax)
+            #print(isMax if depth%2==0 else not isMax)
+            return self.evaluatePredifined(isMax if depth%2 == 0 else not isMax)
 
         self.expandedNodes += 1
         curr_board = self.globalIdx[currBoardIdx]

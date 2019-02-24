@@ -244,30 +244,33 @@ def ordered_domain_values(next_var, csp):
 
     for assignment in domain_values:
         # FIXME: DIRE
-        assignment_removal_dict = {}
-        # constraint_removal = set()
 
-        # Generate removed constraints and invalid locations
+        # Dictionary from variable -> assignments removed
+        assignment_removal_dict = {}
 
         # Remove assignments from domain.
         for c in assignment.constraints_set:
             # Propogate constraints
-            for neighbor in c.assignments_set:
+            for neighbor_assignment in c.assignments_set:
+                neighbor = neighbor_assignment.pent_idx
                 if neighbor not in assignment_removal_dict:
                     assignment_removal_dict[neighbor] = set()
 
-                assignment_removal_dict[neighbor].add(c)
+                assignment_removal_dict[neighbor].add(neighbor_assignment)
+                # print(neighbor)
+                # print(assignment_removal_dict[neighbor])
 
             # constraint_removal.add(c)
+        
         for neighbor in assignment_removal_dict:
-            neighbor.constraints_set &= assignment_removal_dict[neighbor]
+            csp.domains[neighbor] -= assignment_removal_dict[neighbor]
 
         yield assignment, assignment_removal_dict
 
         # Restore constraint and locations
         for assign in assignment_removal_dict:
             # Propogate constraints
-            assign.constraints_set |= assignment_removal_dict[assign]
+            csp.domains[neighbor] |= assignment_removal_dict[assign]
 
     pass
 
@@ -354,10 +357,11 @@ def backtracking(csp, end_locations):
     for assignment, _ in ordered_domain_values(next_var, csp):
         print("c")
         # removed = arc_consistency(csp)
+        csp.unassigned_vars.remove(next_var)
         if consistent(csp):
             # TODO Fix below
             print("d")
-            csp.unassigned_vars.remove(next_var)
+            
 
             end_locations.append(assignment)
 
@@ -380,12 +384,12 @@ def backtracking(csp, end_locations):
             if result is not None:
                 return result
 
-            csp.unassigned_vars.add(next_var)
             end_locations.pop()
 
             # for i in remove_dict:
             # 	assignment.variable_assignment[i] |= remove_dict[i]
             # csp.occupied_locations -= pent_locs
+        csp.unassigned_vars.add(next_var)
         # for i in removed:
         #     assignment.variable_assignment[i] |= removed[i]
 

@@ -248,6 +248,8 @@ def ordered_domain_values(next_var, csp):
         # Dictionary from variable -> assignments removed
         assignment_removal_dict = {}
 
+        a = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
+        
         # Remove assignments from domain.
         for c in assignment.constraints_set:
             # Propogate constraints
@@ -257,10 +259,6 @@ def ordered_domain_values(next_var, csp):
                     assignment_removal_dict[neighbor] = set()
 
                 assignment_removal_dict[neighbor].add(neighbor_assignment)
-                # print(neighbor)
-                # print(assignment_removal_dict[neighbor])
-
-            # constraint_removal.add(c)
         
         for neighbor in assignment_removal_dict:
             csp.domains[neighbor] -= assignment_removal_dict[neighbor]
@@ -268,9 +266,14 @@ def ordered_domain_values(next_var, csp):
         yield assignment, assignment_removal_dict
 
         # Restore constraint and locations
-        for assign in assignment_removal_dict:
+        for neighbor in assignment_removal_dict:
             # Propogate constraints
-            csp.domains[neighbor] |= assignment_removal_dict[assign]
+            print(type(csp.domains[neighbor]))
+            print(type(assignment_removal_dict[neighbor]))
+            csp.domains[neighbor] |= assignment_removal_dict[neighbor]
+
+        b = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
+        assert(a == b)
 
     pass
 
@@ -346,37 +349,25 @@ def arc_consistency(csp):
     return removed_domains  # form {var: domain}
 
 
+import copy
+
 def backtracking(csp, end_locations):
 
     if goal_test(csp) is True:
         return end_locations
 
-    print("a")
+    # print("a")
     next_var = select_unassigned_var(csp)
-    print("b")
-    for assignment, _ in ordered_domain_values(next_var, csp):
-        print("c")
-        # removed = arc_consistency(csp)
+    # print("b")
+    a = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
+    for assignment, removed_dict in ordered_domain_values(next_var, csp):
+        # print("c")
         csp.unassigned_vars.remove(next_var)
         if consistent(csp):
             # TODO Fix below
-            print("d")
-            
-
+            # print("d")
             end_locations.append(assignment)
 
-            # Forward propagation
-            # for i in remove_dict:
-            # 	assignment.variable_assignment[i] -= remove_dict[i]
-
-            # pent_locs = []
-            # for i in range(pent.shape[0]):
-            #     for j in range(pent.shape[1]):
-            #         if pent[i, j] != 0:
-            #             pent_locs.append((i + loc[0], j + loc[1]))
-            # pent_locs = frozenset(pent_locs)
-            # pent_locs = occupied
-            # csp.occupied_locations |= pent_locs  # TODO: REIMPLEMENT OCCUPIED LOC
             print(next_var)
             display_board(csp, end_locations)
             result = backtracking(csp, end_locations)
@@ -386,13 +377,15 @@ def backtracking(csp, end_locations):
 
             end_locations.pop()
 
-            # for i in remove_dict:
-            # 	assignment.variable_assignment[i] |= remove_dict[i]
-            # csp.occupied_locations -= pent_locs
-        csp.unassigned_vars.add(next_var)
-        # for i in removed:
-        #     assignment.variable_assignment[i] |= removed[i]
 
+        b = sum([len(csp.domains[i]) for i in csp.unassigned_vars])
+        print(a, b)
+        # assert(a == b)
+
+
+    b = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
+    assert(a == b)
+    print('Failure')
     return None  # Failed
 
 

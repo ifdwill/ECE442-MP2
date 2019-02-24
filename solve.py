@@ -78,6 +78,9 @@ class Assignment:
         # print('The hash is:')
         return hash((self.pent_idx, self.location, self.rotation, self.flip))
 
+    def __repr__(self):
+        return f'Assignment:[{self.pent_idx}, {self.location}, {self.rotation}, {self.flip}]'        
+
 
 class Constraint:
 
@@ -88,6 +91,9 @@ class Constraint:
 
         # This is the list of assignments that the constaint ties down
         self.assignments_set = set()
+
+    def __repr__(self):
+        return f'Constraint:[{self.constraint}]'        
 
 
 class CSP:
@@ -251,38 +257,70 @@ def ordered_domain_values(next_var, csp):
         a = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
         
         # Remove assignments from domain.
+        
         for c in assignment.constraints_set:
             # Propogate constraints
+
             for neighbor_assignment in c.assignments_set:
                 neighbor = neighbor_assignment.pent_idx
                 if neighbor not in assignment_removal_dict:
                     assignment_removal_dict[neighbor] = set()
 
-                assignment_removal_dict[neighbor].add(neighbor_assignment)
+                if neighbor_assignment in csp.domains[neighbor]:
+                    assignment_removal_dict[neighbor].add(neighbor_assignment)
         
+        # if next_var == 2:
+        #     print('##############')
+        #     print('----')
+        #     print(assignment_removal_dict[5])
+        #     print('!!!!')
+        #     print(csp.domains[5])
+        #     print('~~~~')
+        #     print(csp.domains[5] - assignment_removal_dict[5])
+        #     print('##############')
+        #     raise NotImplementedError
+
+        # if next_var == 4:
+        #     print(assignment)
+        #     print('4##############')
+        #     print('4----')
+        #     print(assignment_removal_dict[5])
+        #     print('4!!!!')
+        #     print(csp.domains[5])
+        #     print('4~~~~')
+        #     print(csp.domains[5] - assignment_removal_dict[5])
+        #     print('4##############')
+        #     # raise NotImplementedError
+
         for neighbor in assignment_removal_dict:
             csp.domains[neighbor] -= assignment_removal_dict[neighbor]
-
+        # print(next_var)
+        # print('Before:', len(assignment_removal_dict[neighbor]))
+        # print('Before:', sum([len(csp.domains[i]) for i in csp.unassigned_vars]))
+        
         yield assignment, assignment_removal_dict
-
+        # print(next_var)
+        # print('After:', len(assignment_removal_dict[neighbor]))
+        # print('After:', sum([len(csp.domains[i]) for i in csp.unassigned_vars]) )
         # Restore constraint and locations
         for neighbor in assignment_removal_dict:
             # Propogate constraints
-            print(type(csp.domains[neighbor]))
-            print(type(assignment_removal_dict[neighbor]))
             csp.domains[neighbor] |= assignment_removal_dict[neighbor]
 
         b = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
-        assert(a == b)
+        # assert(a == b)
 
     pass
 
 
 def consistent(csp):
+    # a = set(i for i in csp.choice)
+
     for var in csp.unassigned_vars:
         if len(csp.domains[var]) == 0:
             return False
 
+    
     return True
 
 
@@ -354,12 +392,24 @@ import copy
 def backtracking(csp, end_locations):
 
     if goal_test(csp) is True:
+        # display_board(csp, end_locations)
+        print(csp.unassigned_vars)
+        print('end_locations')
+        print([i for i in end_locations])
+        assert(len(end_locations) == len(csp.variables_indices))
         return end_locations
 
     # print("a")
     next_var = select_unassigned_var(csp)
     # print("b")
-    a = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
+    a = sum([len(csp.domains[i]) for i in csp.unassigned_vars])
+    assert(len(csp.domains[next_var]) != 0)
+    
+    if next_var == 5:
+        print('~~~~~~~~~~~~~~')
+        print(csp.domains[5])
+        print('~~~~~~~~~~~~~~')
+
     for assignment, removed_dict in ordered_domain_values(next_var, csp):
         # print("c")
         csp.unassigned_vars.remove(next_var)
@@ -376,7 +426,7 @@ def backtracking(csp, end_locations):
                 return result
 
             end_locations.pop()
-
+        csp.unassigned_vars.add(next_var)
 
         b = sum([len(csp.domains[i]) for i in csp.unassigned_vars])
         print(a, b)
@@ -384,13 +434,13 @@ def backtracking(csp, end_locations):
 
 
     b = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
-    assert(a == b)
+    # assert(a == b)
     print('Failure')
     return None  # Failed
 
 
 def solve(board, pents):
-    """
+    """-
     This is the function you will implement. It will take in a numpy array of the board
     as well as a list of n tiles in the form of numpy arrays. The solution returned
     is of the form [(p1, (row1, col1))...(pn,  (rown, coln))]
@@ -404,7 +454,10 @@ def solve(board, pents):
     """
 
     csp = CSP(board, pents)
-
+    # print([i for i in csp.domains[0]][3].pent)
+    # print([i for i in csp.domains[0]][3])
+    # print([i.constraints_set for i in csp.domains[0]][3])
+    # return None
     assignment = backtracking(csp, [])
 
     # Construct return

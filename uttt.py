@@ -67,7 +67,7 @@ class ultimateTicTacToe:
             if l.count(maxPlayer) == 2 and l.count(minPlayer) == 1:
                 score -=500
         return score
-        
+
     def boardValue(self, currentBoard, isMax, emptySpace = '_', maxPlayer = 'X', minPlayer = 'O'):
         score = 0
         if isMax:
@@ -75,33 +75,33 @@ class ultimateTicTacToe:
                for i in range(3) :
                    for j in range(3):
                        if self.board[3*i][(3*j)+ currentBoard] == emptySpace :
-                           score += 10
+                           score += 30
             elif currentBoard >=3 and currentBoard < 6 :
                 for i in range(3) :
                     for j in range(3):
                         if self.board[3*i + 1][(3*j) + (currentBoard%3)] == emptySpace :
-                            score += 10
+                            score += 30
             elif currentBoard >=6 and currentBoard < 9 :
                 for i in range(3) :
                     for j in range(3):
                         if self.board[3*i + 2][(3*j) + (currentBoard%3)] == emptySpace :
-                            score += 10
+                            score += 30
         else:
             if currentBoard < 3 :
                for i in range(3) :
                    for j in range(3):
                        if self.board[3*i][(3*j)+ currentBoard] == emptySpace :
-                           score -= 10
+                           score -= 30
             elif currentBoard >=3 and currentBoard < 6 :
                 for i in range(3) :
                     for j in range(3):
                         if self.board[3*i + 1][(3*j) + (currentBoard%3)] == emptySpace :
-                            score -= 10
+                            score -= 30
             elif currentBoard >=6 and currentBoard < 9 :
                 for i in range(3) :
                     for j in range(3):
                         if self.board[3*i + 2][(3*j) + (currentBoard%3)] == emptySpace :
-                            score -= 10
+                            score -= 30
         return score    
 
     def printGameBoard(self):
@@ -727,7 +727,8 @@ class ultimateTicTacToe:
             isAgentTurn = not isAgentTurn
 
         print('-----------Final Board---------------')
-        print('Agent Start :', agentStart) 
+        print('Agent Start :', agentStart)
+        print('Starting Board: ', self.startBoardIdx) 
         self.printGameBoard()
         #print(bestValue)
         print('Number of expanded nodes: ', expandedNodes)

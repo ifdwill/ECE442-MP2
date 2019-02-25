@@ -748,8 +748,125 @@ class ultimateTicTacToe:
         """
         #YOUR CODE HERE
         bestMove=[]
+        bestValue=[]
+        expandedNodes = []
         gameBoards=[]
         winner=0
+
+        gameBoards.append(copy.deepcopy(self.board))
+        isAgentTurn = True if randint(0,1) == 0 else False
+        #isAgentTurn = False
+        agentStart = isAgentTurn
+        self.currBoardIdx = self.startBoardIdx
+        print(self.currBoardIdx)
+        print('Agent Start :', agentStart) 
+
+        while self.checkMovesLeft() and self.checkWinner() == 0:
+        # if True:
+            self.bestMoveFound = None
+            self.expandedNodes = 0
+            print('---------------New Move-------------------')
+            if isAgentTurn:
+                print('Agent Move!')
+                value = self.alphabeta_designed(0, self.currBoardIdx, -1E10, 1E10, isAgentTurn)
+                self.board[self.bestMoveFound[0]][self.bestMoveFound[1]] = self.maxPlayer if isAgentTurn else self.minPlayer
+            else:
+                value = 0
+                moveMade = False
+                while not moveMade :
+                    print('Current Board', self.currBoardIdx)
+                    in_x  = int(input('Next move? (0-8):'))
+                    curr_board = self.globalIdx[self.currBoardIdx]
+
+                    if in_x == 0 :
+                        if self.board[curr_board[0]][curr_board[1]] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]][curr_board[1]] = self.minPlayer 
+                        else : 
+                            print('Invalid Move')
+                    elif in_x == 1: 
+                        if self.board[curr_board[0]][curr_board[1]+1] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]][curr_board[1]+1] = self.minPlayer 
+                        else :
+                            print('Invalid Move')
+
+                    elif in_x == 2: 
+                        if self.board[curr_board[0]][curr_board[1]+2] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]][curr_board[1]+2] = self.minPlayer 
+                        else :
+                            print('Invalid Move')
+
+                    elif in_x == 3: 
+                        if self.board[curr_board[0]+1][curr_board[1]] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]+1][curr_board[1]] = self.minPlayer 
+                        else :
+                            print('Invalid Move')
+
+                    elif in_x == 4: 
+                        if  self.board[curr_board[0]+1][curr_board[1]+1] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]+1][curr_board[1]+1] = self.minPlayer 
+                        else :
+                            print('Invalid Move')
+
+                    elif in_x == 5: 
+                        if self.board[curr_board[0]+1][curr_board[1]+2] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]+1][curr_board[1]+2] = self.minPlayer 
+                        else :
+                            print('Invalid Move')
+                    elif in_x == 6:
+                        if self.board[curr_board[0]+2][curr_board[1]] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]+2][curr_board[1]] = self.minPlayer 
+                        else :
+                            print('Invalid Move') 
+                    elif in_x == 7: 
+                        if self.board[curr_board[0]+2][curr_board[1]+1] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]+2][curr_board[1]+1] = self.minPlayer 
+                        else :
+                            print('Invalid Move')
+                    elif in_x == 8: 
+                        if self.board[curr_board[0]+2][curr_board[1]+2] == '_' :
+                            moveMade = True
+                            self.board[curr_board[0]+2][curr_board[1]+2] = self.minPlayer 
+                        else :
+                            print('Invalid Move')
+                    else:
+                        print('invalid move!')
+                        assert(False)
+
+                self.currBoardIdx = in_x
+               
+
+            #if agentStart :
+            #else :
+             #   self.board[self.bestMoveFound[0]][self.bestMoveFound[1]] = self.minPlayer if isAgentTurn else self.maxPlayer
+
+            self.printGameBoard()
+
+            bestMove.append(copy.deepcopy(self.bestMoveFound))
+            bestValue.append(value)
+            expandedNodes.append(self.expandedNodes)
+            gameBoards.append(copy.deepcopy(self.board))
+            #print(bestValue)
+            # End turn
+            isAgentTurn = not isAgentTurn
+
+        print('-----------Final Board---------------')
+        print('Agent Start :', agentStart)
+        print('Starting Board: ', self.startBoardIdx) 
+        self.printGameBoard()
+        #print(bestValue)
+        print('Number of expanded nodes: ', expandedNodes)
+        winner = -self.checkWinner()
+
+        print(winner)
+        return gameBoards, bestMove, expandedNodes, bestValue, winner
         return gameBoards, bestMove, winner
 
 if __name__=="__main__":
@@ -803,6 +920,9 @@ if __name__=="__main__":
                 predAgentWins += 1
             elif winner == -1 :
                 designAgentWins += 1
+    elif gameNum == '11':
+        gameBoards, bestMove, expandedNodes, bestValue, winner=uttt.playGameHuman()
+
         
         print("Predefined agent wins: ", predAgentWins)
         print("Designed agent wins: ", designAgentWins)

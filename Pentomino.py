@@ -103,11 +103,13 @@ if __name__ == "__main__":
     board = instances.board_6x10
     # board = instances.board_3x20
     # board = np.ones((4, 15))
-    pents = instances.dominos
+    # board = np.ones((6,8))
+    # pents = instances.dominos
     # pents = instances.triominos
-    #pents = instances.petnominos
-    #
-    # pents = [np.array([[i],[i]]) for i in range(1, 12 + 1)]
+    pents = instances.petnominos
+    
+    
+    # pents = [np.array([[i],[i]]) for i in range(1, int(6*8/2) + 1)]
     sol_list = solve(board, pents)
     if check_correctness(sol_list, board, pents):
         print("PASSED!")

@@ -120,6 +120,9 @@ class CSP:
 
         self.generate_connections()
 
+        self.unassigned_constraint = set(self.constraints.values())        
+
+
     def init_domain(self):
         for pent_idx in self.variables_indices:
             self.domains[pent_idx] = set()
@@ -246,7 +249,7 @@ def ordered_domain_values(next_var, csp):
     # next_var is the location on the square to fill
     domain_values = list(csp.domains[next_var])
 
-    sorted(domain_values, key=lambda x: len(x.constraints_set))
+    sorted(domain_values, key=lambda x: len(x.constraints_set) + 0.01 * x.location[0] + 0.0001 * x.location[1])
 
     for assignment in domain_values:
         # FIXME: DIRE
@@ -260,6 +263,7 @@ def ordered_domain_values(next_var, csp):
         
         for c in assignment.constraints_set:
             # Propogate constraints
+            csp.unassigned_constraint.remove(c)
 
             for neighbor_assignment in c.assignments_set:
                 neighbor = neighbor_assignment.pent_idx
@@ -307,6 +311,9 @@ def ordered_domain_values(next_var, csp):
             # Propogate constraints
             csp.domains[neighbor] |= assignment_removal_dict[neighbor]
 
+        for c in assignment.constraints_set:
+            # Propogate constraints
+            csp.unassigned_constraint.add(c)
         b = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
         # assert(a == b)
 
@@ -316,11 +323,18 @@ def ordered_domain_values(next_var, csp):
 def consistent(csp):
     # a = set(i for i in csp.choice)
 
+    c = set(csp.unassigned_constraint)
+
     for var in csp.unassigned_vars:
         if len(csp.domains[var]) == 0:
             return False
 
+        for assignment in csp.domains[var]:
+            c -= assignment.constraints_set
     
+    if len(c) > 0:
+        return False
+
     return True
 
 
@@ -386,29 +400,26 @@ def arc_consistency(csp):
     print('Arc Consistency END')
     return removed_domains  # form {var: domain}
 
-
-import copy
-
 def backtracking(csp, end_locations):
 
     if goal_test(csp) is True:
         # display_board(csp, end_locations)
-        print(csp.unassigned_vars)
-        print('end_locations')
-        print([i for i in end_locations])
+        # print(csp.unassigned_vars)
+        # print('end_locations')
+        # print([i for i in end_locations])
         assert(len(end_locations) == len(csp.variables_indices))
         return end_locations
 
     # print("a")
     next_var = select_unassigned_var(csp)
     # print("b")
-    a = sum([len(csp.domains[i]) for i in csp.unassigned_vars])
+    # a = sum([len(csp.domains[i]) for i in csp.unassigned_vars])
     assert(len(csp.domains[next_var]) != 0)
     
-    if next_var == 5:
-        print('~~~~~~~~~~~~~~')
-        print(csp.domains[5])
-        print('~~~~~~~~~~~~~~')
+    # if next_var == 5:
+    #     print('~~~~~~~~~~~~~~')
+    #     print(csp.domains[5])
+    #     print('~~~~~~~~~~~~~~')
 
     for assignment, removed_dict in ordered_domain_values(next_var, csp):
         # print("c")
@@ -418,7 +429,7 @@ def backtracking(csp, end_locations):
             # print("d")
             end_locations.append(assignment)
 
-            print(next_var)
+            # print(next_var)
             display_board(csp, end_locations)
             result = backtracking(csp, end_locations)
             
@@ -428,14 +439,14 @@ def backtracking(csp, end_locations):
             end_locations.pop()
         csp.unassigned_vars.add(next_var)
 
-        b = sum([len(csp.domains[i]) for i in csp.unassigned_vars])
-        print(a, b)
+        # b = sum([len(csp.domains[i]) for i in csp.unassigned_vars])
+        # print(a, b)
         # assert(a == b)
 
 
-    b = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
+    # b = sum([len(csp.domains[i]) for i in csp.unassigned_vars]) 
     # assert(a == b)
-    print('Failure')
+    # print('Failure')
     return None  # Failed
 
 

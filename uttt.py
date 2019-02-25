@@ -871,12 +871,13 @@ class ultimateTicTacToe:
 
 if __name__=="__main__":
     uttt=ultimateTicTacToe()
-    gameNum =  input('Game number? ') #str input
+    #gameNum =  input('Game number? ') #str input
     predAgentWins = 0
     designAgentWins = 0
+    gameBoards, bestMove, expandedNodes, bestValue, winner=uttt.playGamePredifinedAgent(True,True,True) #offensive(minimax) vs defensive(minimax)
 
     #print(type(gameNum))
-
+    """
     #offensive first, all combinations
     if gameNum == '1' :
     #if gameNum == 1:
@@ -932,7 +933,8 @@ if __name__=="__main__":
     elif winner == -1:
         print("The winner is minPlayer!!!")
     else:
-        print("Tie. No winner:(")"""
+        print("Tie. No winner:(")
+
     """
     if gameNum < 9 :
         if winner == 1:

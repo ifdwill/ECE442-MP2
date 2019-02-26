@@ -108,8 +108,9 @@ if __name__ == "__main__":
     # pents = instances.triominos
     pents = instances.petnominos
     
-    
-    # pents = [np.array([[i],[i]]) for i in range(1, int(6*8/2) + 1)]
+    # board = np.ones((6,6))
+    # pents = [np.array([[i],[i]]) for i in range(1, int(6*6/2) + 1)]
+    # pents = [np.array([[i,0],[i,i]]) for i in range(1,int(6*6/3))]
     sol_list = solve(board, pents)
     if check_correctness(sol_list, board, pents):
         print("PASSED!")

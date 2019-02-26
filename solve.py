@@ -95,6 +95,8 @@ class Constraint:
     def __repr__(self):
         return f'Constraint:[{self.constraint}]'        
 
+    def __hash__(self):
+        return hash(self.constraint)
 
 class CSP:
     """
@@ -122,6 +124,7 @@ class CSP:
 
         self.unassigned_constraint = set(self.constraints.values())        
 
+        self.neighbor_arcs = set(itertools.product(self.variables_indices, self.variables_indices))
 
     def init_domain(self):
         for pent_idx in self.variables_indices:
@@ -209,26 +212,15 @@ def select_unassigned_var(csp):
 
     if len(min_list) == 1:
         return min_list[0]
-
+    # return min_list[0]
     # MCV
     # min_list is a list of variables
     # check the number of neighboring pents
 
     def count_constraint(x):
-        # print(csp.unassigned_vars)
-        # print(min_list)
-        # print(x)
-        # if type(x) is set:
-        #     for i in x:
-        #         print(i)
         assert(x in min_list)
         assert(x in csp.unassigned_vars)
         assert(type(i) is not set for i in min_list)
-        # print (x)
-        # assert(type(x) is not set)
-        # print(csp.domains[x])
-        # assert(type(i) is not set for i in csp.domains[x])
-        # print(list(assign.constraints_set for assign in csp.domains[x]))
         return sum(len(assign.constraints_set) for assign in csp.domains[x])
 
     # FIXME:
@@ -249,10 +241,31 @@ def ordered_domain_values(next_var, csp):
     # next_var is the location on the square to fill
     domain_values = list(csp.domains[next_var])
 
-    sorted(domain_values, key=lambda x: len(x.constraints_set) + 0.01 * x.location[0] + 0.0001 * x.location[1])
+    def _key(assignment):
+        constraints = assignment.constraints_set
+        neighbors = set()
+
+        for constr in constraints:
+            if type(constr.constraint) is not int:
+                for neigh in itertools.product(
+                    [constr.constraint[0] - 1, constr.constraint[0], constr.constraint[0] + 1], 
+                    [constr.constraint[1]-1, constr.constraint[1], constr.constraint[1] + 1]):
+                    
+                    if Constraint(neigh) in csp.unassigned_constraint:
+                        neighbors.add()
+
+        return len(neighbors)        
+
+
+    sorted(domain_values, key=lambda x: _key(x), reverse=True)    
+    # sorted(domain_values, key=lambda x: len(x.constraints_set))
+    # sorted(domain_values, key=lambda x: x.location[1])
+    # sorted(domain_values, key=lambda x: x.location[0])
+    
+    
+
 
     for assignment in domain_values:
-        # FIXME: DIRE
 
         # Dictionary from variable -> assignments removed
         assignment_removal_dict = {}
@@ -273,40 +286,21 @@ def ordered_domain_values(next_var, csp):
                 if neighbor_assignment in csp.domains[neighbor]:
                     assignment_removal_dict[neighbor].add(neighbor_assignment)
         
-        # if next_var == 2:
-        #     print('##############')
-        #     print('----')
-        #     print(assignment_removal_dict[5])
-        #     print('!!!!')
-        #     print(csp.domains[5])
-        #     print('~~~~')
-        #     print(csp.domains[5] - assignment_removal_dict[5])
-        #     print('##############')
-        #     raise NotImplementedError
-
-        # if next_var == 4:
-        #     print(assignment)
-        #     print('4##############')
-        #     print('4----')
-        #     print(assignment_removal_dict[5])
-        #     print('4!!!!')
-        #     print(csp.domains[5])
-        #     print('4~~~~')
-        #     print(csp.domains[5] - assignment_removal_dict[5])
-        #     print('4##############')
-        #     # raise NotImplementedError
 
         for neighbor in assignment_removal_dict:
             csp.domains[neighbor] -= assignment_removal_dict[neighbor]
-        # print(next_var)
-        # print('Before:', len(assignment_removal_dict[neighbor]))
-        # print('Before:', sum([len(csp.domains[i]) for i in csp.unassigned_vars]))
+
+        arcs_removed = set()
+        for arc in csp.neighbor_arcs:
+            if next_var == arc[0] or next_var == arc[1]:
+                arcs_removed.add(arc)
+
+        csp.neighbor_arcs -= arcs_removed
         
         yield assignment, assignment_removal_dict
-        # print(next_var)
-        # print('After:', len(assignment_removal_dict[neighbor]))
-        # print('After:', sum([len(csp.domains[i]) for i in csp.unassigned_vars]) )
-        # Restore constraint and locations
+
+        csp.neighbor_arcs |= arcs_removed
+
         for neighbor in assignment_removal_dict:
             # Propogate constraints
             csp.domains[neighbor] |= assignment_removal_dict[neighbor]
@@ -335,12 +329,14 @@ def consistent(csp):
     if len(c) > 0:
         return False
 
+    
+
     return True
 
 
 def remove_inconsistent_values(var_one, var_two, csp):
     removed = False
-    deleted = set()
+    deleted = set()   # set of assignments to be deleted
 
     # Get the domain of var_one (its possible assignments)
     for x in csp.domains[var_one]:
@@ -350,6 +346,8 @@ def remove_inconsistent_values(var_one, var_two, csp):
         valid_assignment = False
 
         for y in csp.domains[var_two]:
+            # Can we staisfy all constraints
+
             if x == y:
                 valid_assignment = True
                 break
@@ -367,22 +365,10 @@ def remove_inconsistent_values(var_one, var_two, csp):
 
 
 def arc_consistency(csp):
-    print('Arc Consistency')
-    seen_edges = set()
-    for i in csp.unassigned_vars:
-        # Now iterate through domain of unassigned var
-        domain = csp.domains[i]
-        for assignment in domain:
-            for j in assignment.constraints_set:
-                for k in j.assignments_set:
-                    if i != k.pent_idx:
-                        seen_edges.add((i, k.pent_idx))
-                        # print(k)
-                        assert(type(i) is int)
-                        assert(type(k.pent_idx) is int)
-    queue = deque(seen_edges)
-
-    removed_domains = defaultdict(set)
+    # print('Arc Consistency')
+    
+    queue = deque(csp.neighbor_arcs)
+    removed_assignments = defaultdict(set)
 
     while len(queue) > 0:
         arc = queue.popleft()
@@ -390,15 +376,16 @@ def arc_consistency(csp):
         removed, dele = remove_inconsistent_values(arc[0], arc[1], csp)
 
         # Archive the removed pent assignments
-        removed_domains[arc[0]] |= dele
+        removed_assignments[arc[0]] |= dele
 
         # Need to re-evalute arcs
         if removed:
             for x_k in csp.unassigned_vars:
-                if x_k is not arc[0] and (x_k, arc[0]) in seen_edges:
+                if x_k is not arc[0] and (x_k, arc[0]) in csp.neighbor_arcs:
                     queue.append((x_k, arc[0]))
-    print('Arc Consistency END')
-    return removed_domains  # form {var: domain}
+    # print('Arc Consistency END')
+    return removed_assignments  # form {var: domain}
+
 
 def backtracking(csp, end_locations):
 
@@ -424,6 +411,13 @@ def backtracking(csp, end_locations):
     for assignment, removed_dict in ordered_domain_values(next_var, csp):
         # print("c")
         csp.unassigned_vars.remove(next_var)
+
+        # Arc consistency
+        removed_domain = arc_consistency(csp) # removed_domain var->{assignments}
+        for i in removed_domain:
+            csp.domains[i] -= removed_domain[i]
+
+
         if consistent(csp):
             # TODO Fix below
             # print("d")
@@ -437,6 +431,12 @@ def backtracking(csp, end_locations):
                 return result
 
             end_locations.pop()
+
+        # Restore arc-consistency
+        for i in removed_domain:
+            csp.domains[i] |= removed_domain[i]
+
+        
         csp.unassigned_vars.add(next_var)
 
         # b = sum([len(csp.domains[i]) for i in csp.unassigned_vars])

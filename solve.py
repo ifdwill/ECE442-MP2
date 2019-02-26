@@ -235,34 +235,25 @@ def select_unassigned_var(csp):
 def ordered_domain_values(next_var, csp):
     """ This function orders the values within the assignments from next_var's domain
     next_var - the next assigned variable (index)
-    csp - the constraint problem for easy access"""
+    csp - the constraint pfroblem for easy access"""
 
     # LCA - Least Constraining Assignment
     # next_var is the location on the square to fill
     domain_values = list(csp.domains[next_var])
 
     def _key(assignment):
-        constraints = assignment.constraints_set
-        neighbors = set()
+        val = 0
+        for constr in assignment.constraints_set:
+            if type(constr.constraint) is not int: 
+                val += (constr.constraint[0] - csp.board.shape[0] / 2)**2 + (constr.constraint[1] - csp.board.shape[1] / 2)**2
+        return val
 
-        for constr in constraints:
-            if type(constr.constraint) is not int:
-                for neigh in itertools.product(
-                    [constr.constraint[0] - 1, constr.constraint[0], constr.constraint[0] + 1], 
-                    [constr.constraint[1]-1, constr.constraint[1], constr.constraint[1] + 1]):
-                    
-                    if Constraint(neigh) in csp.unassigned_constraint:
-                        neighbors.add()
-
-        return len(neighbors)        
-
-
-    sorted(domain_values, key=lambda x: _key(x), reverse=True)    
+    domain_values = sorted(domain_values, key=lambda x: _key(x), reverse=True)    
     # sorted(domain_values, key=lambda x: len(x.constraints_set))
     # sorted(domain_values, key=lambda x: x.location[1])
     # sorted(domain_values, key=lambda x: x.location[0])
     
-    
+    #print([_key(i) for i in domain_values])
 
 
     for assignment in domain_values:

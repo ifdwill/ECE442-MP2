@@ -138,8 +138,14 @@ class CSP:
                 flip = temp_assign[3]
 
                 assign = Assignment(pent_idx, loc, rot, flip, self)
+                
+                unique = True
+                for i in self.domains[pent_idx]:
+                    if len(i.occupied - assign.occupied) == 0:
+                        unique = False
+                        break
 
-                if len(assign.occupied) != 0:
+                if unique and len(assign.occupied) != 0:
                     # Valid assignment
                     self.domains[pent_idx].add(assign)
 
@@ -246,9 +252,29 @@ def ordered_domain_values(next_var, csp):
         for constr in assignment.constraints_set:
             if type(constr.constraint) is not int: 
                 val += (constr.constraint[0] - csp.board.shape[0] / 2)**2 + (constr.constraint[1] - csp.board.shape[1] / 2)**2
-        return val
+        
 
-    domain_values = sorted(domain_values, key=lambda x: _key(x), reverse=True)    
+        constraints = assignment.constraints_set
+        neighbors = set()
+        for constr in constraints:
+            if type(constr.constraint) is not int:
+                for neigh in itertools.product(
+                    [constr.constraint[0] - 1, constr.constraint[0], constr.constraint[0] + 1], 
+                    [constr.constraint[1]-1, constr.constraint[1], constr.constraint[1] + 1]):
+
+                    if Constraint(neigh) in csp.unassigned_constraint:
+                        neighbors.add()
+
+        # return val + len(neighbors)**2 
+        affected = set()
+        for constr in assignment.constraints_set:
+            affected |= constr.assignments_set
+
+        return len(affected) - val - len(neighbors)**2
+
+    domain_values = sorted(domain_values, key=lambda x: _key(x), reverse=False) 
+
+    # domain_values = sorted(domain_values, key=lambda x: _key(x), reverse=True)    
     # sorted(domain_values, key=lambda x: len(x.constraints_set))
     # sorted(domain_values, key=lambda x: x.location[1])
     # sorted(domain_values, key=lambda x: x.location[0])

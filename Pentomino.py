@@ -100,13 +100,15 @@ if __name__ == "__main__":
     well on the pentomino set you should be fine. The TA solution is able to run
     in <15 sec for the pentominos on the 6x10 board. 
     """
+
     # board = instances.board_6x10
-    # board = instances.board_3x20
-    board = np.ones((4, 15))
+    board = instances.board_3x20.T
+    # board = np.ones((4, 15))
+    # board = np.ones((5, 12))
     # board = np.ones((6,8))
     # pents = instances.dominos
-    pents = instances.triominos
-    # pents = instances.petnominos
+    # pents = instances.triominos
+    pents = instances.petnominos
     
     # board = np.ones((6,4))
     # pents = [np.array([[i],[i]]) for i in range(1, int(6*6/2) + 1)]
